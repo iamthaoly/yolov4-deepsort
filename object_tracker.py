@@ -163,7 +163,7 @@ def main(_argv):
 
         # read in all class names from config
         class_names = utils.read_class_names(cfg.YOLO.CLASSES)
-        print(class_names)
+        # print(class_names)
         # by default allow all classes in .names file
         allowed_classes = list(class_names.values())
         
