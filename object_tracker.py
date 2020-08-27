@@ -1,4 +1,5 @@
 import os
+import math
 # comment out below line to enable tensorflow logging outputs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import time
@@ -90,8 +91,14 @@ def main(_argv):
         fps = int(vid.get(cv2.CAP_PROP_FPS))
         codec = cv2.VideoWriter_fourcc(*FLAGS.output_format)
         out = cv2.VideoWriter(FLAGS.output, codec, fps, (width, height))
-
+    
     # while video is running
+    frame_id = 0
+    # ====> OPEN TEXT FILE <====
+    # text_name,_= os.path.splitext(os.path.basename(video_path))
+    # text_name = text_name + ".txt"
+    text_path = FLAGS.output + ".txt"
+    f = open(text_path, "w+")
     while True:
         return_value, frame = vid.read()
         if return_value:
@@ -100,7 +107,9 @@ def main(_argv):
         else:
             print('Video has ended or failed, try a different video format!')
             break
-    
+    	  
+        frame_id += 1
+    	
         frame_size = frame.shape[:2]
         image_data = cv2.resize(frame, (input_size, input_size))
         image_data = image_data / 255.
@@ -154,7 +163,7 @@ def main(_argv):
 
         # read in all class names from config
         class_names = utils.read_class_names(cfg.YOLO.CLASSES)
-
+        print(class_names)
         # by default allow all classes in .names file
         allowed_classes = list(class_names.values())
         
@@ -209,7 +218,17 @@ def main(_argv):
             cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
             cv2.rectangle(frame, (int(bbox[0]), int(bbox[1]-30)), (int(bbox[0])+(len(class_name)+len(str(track.track_id)))*17, int(bbox[1])), color, -1)
             cv2.putText(frame, class_name + "-" + str(track.track_id),(int(bbox[0]), int(bbox[1]-10)),0, 0.75, (255,255,255),2)
-
+	
+            #====> Save info to file <=====
+            x_center = (bbox[0] + bbox[2])/2
+            y_center = (bbox[1] + bbox[3])/2
+            diagonal = math.hypot(bbox[2] - bbox[0], bbox[3]-bbox[1])
+            confidence = -1
+        
+            line = "{},{},{},{},{},{},{}".format(frame_id, str(track.track_id), x_center, y_center, diagonal, confidence, allowed_classes.index(class_name))
+            f.write(line + "\n")
+            #==============================
+	
         # if enable info flag then print details about each track
             if FLAGS.info:
                 print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
@@ -228,7 +247,17 @@ def main(_argv):
             out.write(result)
         if cv2.waitKey(1) & 0xFF == ord('q'): break
     cv2.destroyAllWindows()
-
+    f.close()
+    # FORMAT RESULT DATA
+    raw_data = np.genfromtxt(text_path, dtype=np.float64, delimiter=",", names=["frame_id", "track_id", "x", "y", "d", "confi", "class"])
+    raw_data.sort(order=["track_id", "frame_id"])
+    new_data = ""
+    for row in raw_data:
+        new_data +=  "{},{},{},{},{},{},{}".format(int(row[0]), int(row[1]), row[2], row[3], row[4], row[5], int(row[6]))
+        new_data += "\n"
+    with open(text_path, "w+") as f:
+        f.write(new_data)
+    print("FORMATTING DONE!")
 if __name__ == '__main__':
     try:
         app.run(main)
