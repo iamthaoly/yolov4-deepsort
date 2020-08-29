@@ -99,7 +99,7 @@ def main(_argv):
     # text_name,_= os.path.splitext(os.path.basename(video_path))
     # text_name = text_name + ".txt"
     if FLAGS.text != None:
-    	text_path = FLAGS.output + ".txt"
+    	text_path = FLAGS.output
     	f = open(text_path, "w+")
     while True:
         return_value, frame = vid.read()
