@@ -257,8 +257,7 @@ def main(_argv):
     	new_data = ""
     	for row in raw_data:
     	    new_data += "{},{},{},{},{},{},{}\n".format(int(row[0]), int(row[1]), row[2], row[3], row[4], row[5], int(row[6]))
-    	with open(text_path, "w+") as f:
-        f.write(new_data)
+    	with open(text_path, "w+") as f: f.write(new_data)
     	print("FORMATTING DONE!")
 if __name__ == '__main__':
     try:
