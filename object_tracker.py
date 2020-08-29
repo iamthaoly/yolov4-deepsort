@@ -34,6 +34,7 @@ flags.DEFINE_boolean('tiny', False, 'yolo or yolo-tiny')
 flags.DEFINE_string('model', 'yolov4', 'yolov3 or yolov4')
 flags.DEFINE_string('video', './data/video/test.mp4', 'path to input video or set to 0 for webcam')
 flags.DEFINE_string('output', None, 'path to output video')
+flags.DEFINE_string('text', None, 'path to text output file')
 flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
 flags.DEFINE_float('iou', 0.45, 'iou threshold')
 flags.DEFINE_float('score', 0.50, 'score threshold')
@@ -97,8 +98,9 @@ def main(_argv):
     # ====> OPEN TEXT FILE <====
     # text_name,_= os.path.splitext(os.path.basename(video_path))
     # text_name = text_name + ".txt"
-    text_path = FLAGS.output + ".txt"
-    f = open(text_path, "w+")
+    if FLAGS.text != None:
+    	text_path = FLAGS.output + ".txt"
+    	f = open(text_path, "w+")
     while True:
         return_value, frame = vid.read()
         if return_value:
@@ -226,7 +228,7 @@ def main(_argv):
             confidence = -1
         
             line = "{},{},{},{},{},{},{}".format(frame_id, str(track.track_id), x_center, y_center, diagonal, confidence, allowed_classes.index(class_name))
-            f.write(line + "\n")
+            if FLAGS.text != None: f.write(line + "\n")
             #==============================
 	
         # if enable info flag then print details about each track
@@ -249,15 +251,16 @@ def main(_argv):
     cv2.destroyAllWindows()
     f.close()
     # FORMAT RESULT DATA
-    raw_data = np.genfromtxt(text_path, dtype=np.float64, delimiter=",", names=["frame_id", "track_id", "x", "y", "d", "confi", "class"])
-    raw_data.sort(order=["track_id", "frame_id"])
-    new_data = ""
-    for row in raw_data:
-        new_data +=  "{},{},{},{},{},{},{}".format(int(row[0]), int(row[1]), row[2], row[3], row[4], row[5], int(row[6]))
-        new_data += "\n"
-    with open(text_path, "w+") as f:
+    if FLAGS.text != None:
+    	raw_data = np.genfromtxt(text_path, dtype=np.float64, delimiter=",", names=["frame_id", "track_id", "x", "y", "d", "confi", "class"])
+    	raw_data.sort(order=["track_id", "frame_id"])
+    	new_data = ""
+    	for row in raw_data:
+    	    new_data += "{},{},{},{},{},{},{}".format(int(row[0]), int(row[1]), row[2], row[3], row[4], row[5], int(row[6]))
+            new_data += "\n"
+    	with open(text_path, "w+") as f:
         f.write(new_data)
-    print("FORMATTING DONE!")
+    	print("FORMATTING DONE!")
 if __name__ == '__main__':
     try:
         app.run(main)
