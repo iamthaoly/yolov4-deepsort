@@ -256,8 +256,7 @@ def main(_argv):
     	raw_data.sort(order=["track_id", "frame_id"])
     	new_data = ""
     	for row in raw_data:
-    	    new_data += "{},{},{},{},{},{},{}".format(int(row[0]), int(row[1]), row[2], row[3], row[4], row[5], int(row[6]))
-            new_data += "\n"
+    	    new_data += "{},{},{},{},{},{},{}\n".format(int(row[0]), int(row[1]), row[2], row[3], row[4], row[5], int(row[6]))
     	with open(text_path, "w+") as f:
         f.write(new_data)
     	print("FORMATTING DONE!")
